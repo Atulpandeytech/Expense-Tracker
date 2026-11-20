@@ -17,4 +17,5 @@ urlpatterns = [
     path('budgets/', views.budgets, name='budgets'),
     re_path(r'^reports/(?P<year>[0-9]{4})/$', views.annual_report, name='annual_report'),
     path('api/chart-data/', views.chart_data_json, name='chart_data_json'),
+    path('mentor/', views.mentor_chat, name='mentor_chat'),
 ]

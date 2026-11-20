@@ -2,6 +2,7 @@
 {% block title %}Financial Dashboard{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-3"><h2>Financial Dashboard</h2><a class="btn btn-primary" href="{% url 'expense_create' %}">+ Add Expense</a></div>
+<div class="alert mentor-banner d-flex justify-content-between align-items-center"><span><strong>Need help saving?</strong> Chat with your personal Finance Mentor about your dashboard.</span><a class="btn btn-dark btn-sm" href="{% url 'mentor_chat' %}">Open AI Mentor</a></div>
 <div class="row g-3 mb-4">
   <div class="col-sm-6 col-xl-3"><div class="card summary-card p-3"><small class="text-muted">TOTAL INCOME</small><h4>Rs. {{ total_income|floatformat:2 }}</h4></div></div>
   <div class="col-sm-6 col-xl-3"><div class="card summary-card expense p-3"><small class="text-muted">TOTAL EXPENSES</small><h4>Rs. {{ total_expenses|floatformat:2 }}</h4></div></div>

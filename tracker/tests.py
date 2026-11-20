@@ -4,7 +4,7 @@ from django.urls import reverse
 from datetime import date
 from decimal import Decimal
 from .models import Category, Expense, Income, MonthlyBudget
-from .views import build_savings_suggestions
+from .views import build_savings_suggestions, finance_chat_reply
 
 
 class StudentExpenseTrackerTests(TestCase):
@@ -54,3 +54,10 @@ class StudentExpenseTrackerTests(TestCase):
         )
         self.assertEqual(len(suggestions), 2)
         self.assertIn('food', suggestions[1]['title'].lower())
+
+    def test_finance_chat_uses_user_totals(self):
+        reply = finance_chat_reply(
+            'How can I save more?', Decimal('10000'), Decimal('9000'),
+            Decimal('4000'), None, None, [],
+        )
+        self.assertIn('Rs. 1,000.00', reply)

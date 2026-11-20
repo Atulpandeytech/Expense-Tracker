@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}AI Finance Mentor{% endblock %}
+{% block content %}
+<div class="row justify-content-center"><div class="col-lg-8">
+  <div class="card mentor-chat-card">
+    <div class="mentor-chat-header"><div class="mentor-icon" aria-hidden="true">AI</div><div><h3 class="mb-1">Finance Mentor</h3><p class="mb-0">Ask me how to save more using your dashboard data.</p></div></div>
+    <div id="chatMessages" class="chat-messages" aria-live="polite">
+      <div class="chat-message mentor-message">Hi! I can help you understand your spending and make a realistic savings plan. Try asking: <strong>“Why am I not saving enough?”</strong></div>
+    </div>
+    <form id="chatForm" class="chat-form">{% csrf_token %}<input id="chatInput" class="form-control" autocomplete="off" placeholder="Ask about your savings, budget, or spending..." required><button class="btn btn-primary" type="submit">Send</button></form>
+    <div class="chat-prompts"><button type="button" class="btn btn-sm btn-outline-secondary">How can I save more?</button><button type="button" class="btn btn-sm btn-outline-secondary">Where do I spend the most?</button><button type="button" class="btn btn-sm btn-outline-secondary">How is my budget?</button></div>
+  </div>
+</div></div>
+{% endblock %}
+{% block scripts %}
+<script>
+const form=document.getElementById('chatForm'), input=document.getElementById('chatInput'), messages=document.getElementById('chatMessages');
+function addMessage(text, kind){const item=document.createElement('div');item.className='chat-message '+kind;item.textContent=text;messages.appendChild(item);messages.scrollTop=messages.scrollHeight;}
+document.querySelectorAll('.chat-prompts button').forEach(button=>button.addEventListener('click',()=>{input.value=button.textContent;input.focus();}));
+form.addEventListener('submit',async(event)=>{event.preventDefault();const text=input.value.trim();if(!text)return;addMessage(text,'user-message');input.value='';const body=new URLSearchParams({message:text});const response=await fetch("{% url 'mentor_chat' %}",{method:'POST',headers:{'X-CSRFToken':document.querySelector('[name=csrfmiddlewaretoken]').value,'Content-Type':'application/x-www-form-urlencoded'},body});const data=await response.json();addMessage(data.reply || 'I could not process that question. Please try again.','mentor-message');});
+</script>
+{% endblock %}

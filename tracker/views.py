@@ -86,6 +86,42 @@ def build_savings_suggestions(total_income, total_expenses, monthly_spend, budge
     return suggestions[:3]
 
 
+def finance_chat_reply(message, total_income, total_expenses, monthly_spend, budget, budget_usage, category_totals):
+    """Answer common finance questions using the current user's private totals."""
+    message = message.lower().strip()
+    balance = total_income - total_expenses
+    category_name = category_totals[0]['category__name'] if category_totals else None
+    category_amount = category_totals[0]['total'] if category_totals else Decimal('0')
+
+    if not message:
+        return 'Tell me what you want to improve, such as saving more, reducing food spending, or understanding your budget.'
+    if any(word in message for word in ('hello', 'hi', 'hey')):
+        return 'Hi! I am your Finance Mentor. Ask me why your savings are low, where you spend the most, or how to make a realistic monthly plan.'
+    if any(word in message for word in ('saving', 'save', 'savings')):
+        if total_income <= 0:
+            return 'I need at least one income record before I can calculate a realistic savings target. Add your income first, then ask me again.'
+        target = (total_income * Decimal('0.2')).quantize(Decimal('0.01'))
+        if balance <= 0:
+            return f'Your recorded expenses are Rs. {abs(balance):,.2f} higher than your income. First reduce spending below income; then aim to save Rs. {target:,.2f}, or 20% of your recorded income.'
+        return f'You currently have Rs. {balance:,.2f} left from recorded income. A realistic first target is Rs. {target:,.2f} (20% of income). Move that amount to savings when income arrives, then manage the remaining balance.'
+    if any(word in message for word in ('where', 'category', 'spend most', 'largest')):
+        if not category_name:
+            return 'There are no expense records yet. Add a few expenses and I can identify your biggest spending category.'
+        saving = (category_amount * Decimal('0.1')).quantize(Decimal('0.01'))
+        return f'Your largest current category is {category_name} at Rs. {category_amount:,.2f}. A practical first step is to reduce it by 10%, which could save about Rs. {saving:,.2f}.'
+    if any(word in message for word in ('budget', 'limit', 'remaining')):
+        if not budget:
+            return 'You have not set a monthly budget yet. Open Budgets, set a limit based on your income, and I can help you track it.'
+        if budget_usage >= 100:
+            return f'You have exceeded this month’s budget by Rs. {abs(budget.limit_amount - monthly_spend):,.2f}. Stop non-essential spending, review your largest category, and set a daily limit for the remaining days.'
+        return f'You have used {budget_usage:,.1f}% of your monthly budget and have Rs. {budget.limit_amount - monthly_spend:,.2f} remaining. Keep at least 10% as a buffer for unexpected costs.'
+    if any(word in message for word in ('plan', 'manage', 'help', 'not saving', 'not save')):
+        if balance <= 0:
+            return 'Let us start with a recovery plan: list essential expenses, pause non-essential purchases, set a weekly spending cap, and record every expense. Once your balance is positive, automate a small saving first.'
+        return f'Here is a simple plan: save 20% of income first, reserve essentials next, set a weekly cap for {category_name or "your largest category"}, and review your dashboard every Sunday. Your current available balance is Rs. {balance:,.2f}.'
+    return f'Based on your dashboard, income is Rs. {total_income:,.2f}, expenses are Rs. {total_expenses:,.2f}, and your balance is Rs. {balance:,.2f}. Ask me “how can I save more?”, “where do I spend the most?”, or “how is my budget?”'
+
+
 def ensure_categories():
     for name, slug in DEFAULT_CATEGORIES:
         Category.objects.get_or_create(name=name, defaults={'slug': slug})
@@ -322,6 +358,30 @@ def chart_data_json(request):
         'income': monthly_income,
         'expenses': monthly_expense,
     })
+
+
+@login_required
+def mentor_chat(request):
+    if request.method == 'GET':
+        return render(request, 'tracker/mentor_chat.html')
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Only GET and POST requests are supported.'}, status=405)
+    message = request.POST.get('message', '')
+    today = date.today()
+    incomes = Income.objects.filter(user=request.user)
+    expenses = Expense.objects.filter(user=request.user)
+    total_income = incomes.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    total_expenses = expenses.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    monthly_spend = expenses.filter(date__year=today.year, date__month=today.month).aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    budget = MonthlyBudget.objects.filter(user=request.user, month=today.month, year=today.year).first()
+    budget_usage = ((monthly_spend / budget.limit_amount * 100).quantize(Decimal('0.1'))) if budget else None
+    category_totals = list(
+        expenses.values('category__name').annotate(total=Sum('amount')).order_by('-total')
+    )
+    reply = finance_chat_reply(
+        message, total_income, total_expenses, monthly_spend, budget, budget_usage, category_totals
+    )
+    return JsonResponse({'reply': reply})
 
 
 def custom_404(request, exception):

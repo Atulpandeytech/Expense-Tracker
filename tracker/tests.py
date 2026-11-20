@@ -4,6 +4,7 @@ from django.urls import reverse
 from datetime import date
 from decimal import Decimal
 from .models import Category, Expense, Income, MonthlyBudget
+from .views import build_savings_suggestions
 
 
 class StudentExpenseTrackerTests(TestCase):
@@ -45,3 +46,11 @@ class StudentExpenseTrackerTests(TestCase):
         })
         self.assertEqual(response.status_code, 302)
         self.assertTrue(MonthlyBudget.objects.filter(user=self.user).exists())
+
+    def test_savings_mentor_uses_dashboard_analysis(self):
+        suggestions = build_savings_suggestions(
+            Decimal('10000'), Decimal('9000'), Decimal('4000'), None, None,
+            [{'category__name': 'Food', 'total': Decimal('3000')}],
+        )
+        self.assertEqual(len(suggestions), 2)
+        self.assertIn('Food', suggestions[1]['title'])

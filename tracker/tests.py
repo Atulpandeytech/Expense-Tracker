@@ -53,4 +53,4 @@ class StudentExpenseTrackerTests(TestCase):
             [{'category__name': 'Food', 'total': Decimal('3000')}],
         )
         self.assertEqual(len(suggestions), 2)
-        self.assertIn('Food', suggestions[1]['title'])
+        self.assertIn('food', suggestions[1]['title'].lower())

@@ -21,71 +21,6 @@ DEFAULT_CATEGORIES = [
 ]
 
 
-def build_savings_suggestions(total_income, total_expenses, monthly_spend, budget, budget_usage, category_totals):
-    """Create practical, user-specific savings guidance from dashboard totals."""
-    suggestions = []
-    if total_income <= 0:
-        return [
-            {
-                'tone': 'info',
-                'title': 'Start with an income plan',
-                'text': 'Add your income records so the mentor can calculate your savings rate and recommend a realistic monthly target.',
-            }
-        ]
-
-    savings_rate = ((total_income - total_expenses) / total_income) * 100
-    if savings_rate < 0:
-        suggestions.append({
-            'tone': 'danger',
-            'title': 'Your spending is above your recorded income',
-            'text': 'Pause non-essential purchases and review your largest categories. Aim to bring monthly spending below income before increasing your savings target.',
-        })
-    elif savings_rate < 20:
-        suggestions.append({
-            'tone': 'warning',
-            'title': 'Build a 20% savings habit',
-            'text': f'You are currently saving about {savings_rate.quantize(Decimal("0.1"))}%. Try moving 20% of each income entry to savings before spending the rest.',
-        })
-    else:
-        suggestions.append({
-            'tone': 'success',
-            'title': 'Your savings rate is healthy',
-            'text': f'You are saving about {savings_rate.quantize(Decimal("0.1"))}% of recorded income. Keep this habit and consider an emergency fund for unexpected costs.',
-        })
-
-    if category_totals:
-        largest = category_totals[0]
-        category_amount = largest['total']
-        category_name = largest['category__name']
-        suggestions.append({
-            'tone': 'primary',
-            'title': f'Review your {category_name.lower()} spending',
-            'text': f'{category_name} is your highest tracked category at Rs. {category_amount:,.2f}. A 10% reduction could save approximately Rs. {(category_amount * Decimal("0.1")):,.2f}.',
-        })
-
-    if budget and budget_usage is not None:
-        if budget_usage >= 100:
-            suggestions.append({
-                'tone': 'danger',
-                'title': 'Your monthly budget has been exceeded',
-                'text': f'You are Rs. {abs(budget.limit_amount - monthly_spend):,.2f} over budget. Set a smaller daily spending limit for the remaining days and avoid non-essential purchases.',
-            })
-        elif budget_usage >= 80:
-            suggestions.append({
-                'tone': 'warning',
-                'title': 'Protect the remaining budget',
-                'text': f'Only Rs. {budget.limit_amount - monthly_spend:,.2f} remains this month. Prioritize needs and check the expense list before making new purchases.',
-            })
-        else:
-            suggestions.append({
-                'tone': 'success',
-                'title': 'You are within your monthly budget',
-                'text': f'You have Rs. {budget.limit_amount - monthly_spend:,.2f} available. Keep a buffer instead of treating the full remaining amount as spendable.',
-            })
-
-    return suggestions[:3]
-
-
 def finance_chat_reply(message, total_income, total_expenses, monthly_spend, budget, budget_usage, category_totals):
     """Answer common finance questions using the current user's private totals."""
     message = message.lower().strip()
@@ -148,9 +83,6 @@ def dashboard(request):
     category_totals = list(
         monthly_expenses.values('category__name').annotate(total=Sum('amount')).order_by('-total')
     )
-    suggestions = build_savings_suggestions(
-        total_income, total_expenses, monthly_spend, budget, budget_usage, category_totals
-    )
     return render(request, 'tracker/dashboard.html', {
         'total_income': total_income,
         'total_expenses': total_expenses,
@@ -161,7 +93,6 @@ def dashboard(request):
         'budget_remaining': budget_remaining,
         'recent_expenses': expenses[:8],
         'category_totals': category_totals,
-        'suggestions': suggestions,
         'today': today,
     })
 

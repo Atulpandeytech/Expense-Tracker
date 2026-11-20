@@ -17,14 +17,7 @@ body { background:#eef5ef; color:var(--ink); }
 .table-card { overflow-x:auto; }
 .progress { height:12px; }
 .chart-wrap { min-height:260px; position:relative; }
-.mentor-card { border-top:4px solid var(--brand); }
 .mentor-icon { min-width:44px; height:44px; display:grid; place-items:center; border-radius:50%; background:#07130b; color:#9cf2ae; font-size:.8rem; font-weight:800; }
-.mentor-tip { height:100%; padding:.85rem; border-left:3px solid var(--brand); border-radius:6px; background:#f3faf4; font-size:.9rem; }
-.mentor-tip p { color:var(--muted); }
-.mentor-warning { border-left-color:#b45309; background:#fff8eb; }
-.mentor-danger { border-left-color:#b42318; background:#fff1f0; }
-.mentor-success { border-left-color:#137a3a; background:#effaf1; }
-.mentor-info { border-left-color:#175cd3; background:#eff6ff; }
 .mentor-banner { background:#e1f4e5; border:1px solid #9ed5aa; color:#102218; }
 .mentor-chat-card { overflow:hidden; }
 .mentor-chat-header { display:flex; align-items:center; gap:1rem; padding:1.25rem 1.5rem; color:#fff; background:#050806; }

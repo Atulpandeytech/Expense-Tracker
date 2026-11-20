@@ -13,21 +13,6 @@
 <div class="alert {% if budget_usage >= 100 %}alert-danger{% else %}alert-warning{% endif %}">
   {% if budget_usage >= 100 %}You have exceeded your monthly budget.{% else %}You have used at least 80% of your monthly budget.{% endif %}
 </div>{% endif %}
-<div class="card mentor-card p-4 mb-3">
-  <div class="d-flex align-items-start gap-3">
-    <div class="mentor-icon" aria-hidden="true">AI</div>
-    <div class="flex-grow-1">
-      <h5 class="mb-1">AI Savings Mentor</h5>
-      <p class="text-muted mb-3">Personalized suggestions based on your recorded dashboard activity.</p>
-      <div class="row g-2">
-        {% for suggestion in suggestions %}
-        <div class="col-lg-4"><div class="mentor-tip mentor-{{ suggestion.tone }}"><strong>{{ suggestion.title }}</strong><p class="mb-0 mt-1">{{ suggestion.text }}</p></div></div>
-        {% endfor %}
-      </div>
-      <small class="text-muted d-block mt-3">Suggestions are estimates from your records, not financial advice.</small>
-    </div>
-  </div>
-</div>
 <div class="row g-3">
   <div class="col-lg-5"><div class="card p-3"><h5>Spending by Category</h5><div class="chart-wrap"><canvas id="categoryChart"></canvas></div></div></div>
   <div class="col-lg-7"><div class="card p-3 table-card"><h5>Recent Transactions</h5><table class="table align-middle"><thead><tr><th>Title</th><th>Category</th><th>Amount</th></tr></thead><tbody>{% for expense in recent_expenses %}<tr><td><a href="{% url 'expense_detail' expense.pk %}">{{ expense.title }}</a></td><td>{{ expense.category.name }}</td><td class="text-danger">- Rs. {{ expense.amount|floatformat:2 }}</td></tr>{% empty %}<tr><td colspan="3" class="text-muted">No expenses yet.</td></tr>{% endfor %}</tbody></table></div></div>

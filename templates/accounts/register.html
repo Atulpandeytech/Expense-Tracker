@@ -1,0 +1,7 @@
+{% extends "accounts/auth_base.html" %}
+{% block title %}Create Account{% endblock %}
+{% block auth_content %}
+<h4 class="text-center mb-4">Create Student Account</h4>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary w-100">Register Account</button></form>
+<p class="text-center mt-3"><a href="{% url 'login' %}">Already have an account? Sign in</a></p>
+{% endblock %}

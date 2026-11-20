@@ -1,0 +1,2 @@
+{% extends "base.html" %}
+{% block content %}<div class="col-md-6 mx-auto"><div class="card p-4"><h4>Confirm Delete</h4><p>Are you sure you want to delete <strong>{{ object }}</strong>?</p><form method="post">{% csrf_token %}<button class="btn btn-danger">Delete Permanently</button>{% if object_id %}<a class="btn btn-secondary" href="{% url cancel_url object_id %}">Cancel</a>{% else %}<a class="btn btn-secondary" href="{% url cancel_url %}">Cancel</a>{% endif %}</form></div></div>{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Annual Reports{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between mb-3"><h2>Annual Financial Reports ({{ year }})</h2><div class="input-group" style="width:210px"><input id="reportYear" type="number" class="form-control" value="{{ year }}"><button class="btn btn-outline-primary" type="button" onclick="changeReportYear()">View</button></div></div>
+<div class="row g-3"><div class="col-lg-7"><div class="card p-3"><h5>Monthly Income vs. Expenses</h5><div class="chart-wrap"><canvas id="monthlyChart"></canvas></div></div></div><div class="col-lg-5"><div class="card p-3"><h5>Category-wise Expenses</h5><div class="chart-wrap"><canvas id="categoryReportChart"></canvas></div></div></div></div>
+<script>const reportIncome={{ income_rows|safe }};const reportExpenses={{ expense_rows|safe }};const reportCategories={% autoescape off %}{{ category_rows|safe }}{% endautoescape %};</script>
+{% endblock %}
+{% block scripts %}
+<script>
+function changeReportYear(){ const year=document.getElementById('reportYear').value; if(year){ window.location.href='/reports/'+year+'/'; } }
+const labels={{ months|safe }};
+new Chart(document.getElementById('monthlyChart'),{type:'bar',data:{labels,datasets:[{label:'Income',data:reportIncome,backgroundColor:'#1665d8'},{label:'Expenses',data:reportExpenses,backgroundColor:'#f79009'}]},options:{responsive:true,maintainAspectRatio:false}});
+fetch("{% url 'chart_data_json' %}").then(r=>r.json()).then(d=>new Chart(document.getElementById('categoryReportChart'),{type:'bar',data:{labels:d.labels,datasets:[{label:'Expenses',data:d.data,backgroundColor:'#1665d8'}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false}}));
+</script>
+{% endblock %}

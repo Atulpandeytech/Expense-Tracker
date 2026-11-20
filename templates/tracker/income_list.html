@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Income Management{% endblock %}
+{% block content %}
+<h2 class="mb-3">Income Management</h2>
+<div class="row g-3"><div class="col-lg-4"><div class="card p-3"><h5>Add Income</h5><form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-success w-100">Save Income</button></form></div></div>
+<div class="col-lg-8"><div class="card p-3 table-card"><h5>Income Records</h5><table class="table"><thead><tr><th>Date</th><th>Source</th><th>Amount</th><th>Actions</th></tr></thead><tbody>{% for income in incomes %}<tr><td>{{ income.date|date:"d M Y" }}</td><td>{{ income.source }}</td><td class="text-success">Rs. {{ income.amount|floatformat:2 }}</td><td><a class="btn btn-primary btn-sm" href="{% url 'income_update' income.pk %}">Edit</a> <a class="btn btn-danger btn-sm" href="{% url 'income_delete' income.pk %}">Delete</a></td></tr>{% empty %}<tr><td colspan="4" class="text-muted">No income records.</td></tr>{% endfor %}</tbody></table></div></div></div>
+{% endblock %}

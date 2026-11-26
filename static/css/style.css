@@ -48,3 +48,111 @@ body { background:#eef5ef; color:var(--ink); }
   .table { font-size:.82rem; }
   .btn-action { width:100%; margin-bottom:.35rem; }
 }
+.dashboard-page { --dashboard-ink:#17251d; --dashboard-muted:#708078; --dashboard-line:#e8eee9; color:var(--dashboard-ink); }
+.dashboard-header { display:flex; justify-content:space-between; align-items:flex-end; gap:1.5rem; margin-bottom:1.75rem; }
+.dashboard-header h1 { margin:0; font-size:clamp(1.8rem,3vw,2.4rem); font-weight:750; letter-spacing:-.045em; }
+.dashboard-eyebrow,.panel-eyebrow { margin:0 0 .45rem; color:#17864b; font-size:.72rem; font-weight:800; letter-spacing:.13em; }
+.dashboard-subtitle { margin:.5rem 0 0; color:var(--dashboard-muted); }
+.dashboard-actions { display:flex; align-items:center; gap:.7rem; flex-shrink:0; }
+.dashboard-actions .btn { padding:.68rem 1rem; border-radius:10px; font-weight:650; }
+.dashboard-actions .btn-primary { box-shadow:0 5px 14px rgba(19,122,58,.2); }
+.btn-mentor { color:#17663a; background:#fff; border:1px solid #d5e4d8; }
+.btn-mentor:hover,.btn-mentor:focus { color:#075226; background:#f3faf5; border-color:#a9cdb2; }
+.dashboard-metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:1rem; margin-bottom:1.25rem; }
+.metric-card { min-width:0; padding:1.15rem 1.25rem 1.05rem; background:#fff; border:1px solid var(--dashboard-line); border-radius:16px; box-shadow:0 5px 18px rgba(24,52,34,.045); transition:transform .18s ease,box-shadow .18s ease; }
+.metric-card:hover { transform:translateY(-2px); box-shadow:0 9px 24px rgba(24,52,34,.09); }
+.metric-topline { display:flex; align-items:center; gap:.65rem; }
+.metric-icon { display:grid; width:34px; height:34px; place-items:center; border-radius:11px; background:#e9f6ed; color:#17864b; font-size:1.15rem; font-weight:750; }
+.metric-expenses .metric-icon { color:#d75b4b; background:#fff0ed; }
+.metric-balance .metric-icon { color:#5270c9; background:#eef1ff; }
+.metric-monthly .metric-icon { color:#c47a19; background:#fff5e5; }
+.metric-label { color:var(--dashboard-muted); font-size:.68rem; font-weight:800; letter-spacing:.075em; }
+.metric-card h2 { margin:1rem 0 .2rem; overflow:hidden; font-size:clamp(1.25rem,2vw,1.65rem); font-weight:750; letter-spacing:-.04em; text-overflow:ellipsis; white-space:nowrap; }
+.metric-card p { margin:0; color:var(--dashboard-muted); font-size:.82rem; }
+.dashboard-budget-alert { display:flex; align-items:center; gap:.9rem; margin:0 0 1.25rem; padding:1rem 1.1rem; color:#704b12; background:#fff8e9; border:1px solid #f4dfb4; border-radius:14px; }
+.dashboard-budget-alert.is-over-budget { color:#8e382f; background:#fff1ef; border-color:#f1cbc5; }
+.alert-icon { display:grid; width:32px; height:32px; flex:none; place-items:center; border-radius:50%; background:rgba(207,143,35,.14); font-weight:800; }
+.is-over-budget .alert-icon { background:rgba(205,78,64,.13); }
+.dashboard-budget-alert strong { display:block; font-size:.92rem; }
+.dashboard-budget-alert p { margin:.15rem 0 0; color:inherit; font-size:.82rem; opacity:.85; }
+.dashboard-budget-alert a { margin-left:auto; flex:none; color:inherit; font-size:.85rem; font-weight:700; text-decoration:none; }
+.dashboard-panels { display:grid; grid-template-columns:minmax(0,5fr) minmax(0,7fr); gap:1rem; align-items:start; }
+.dashboard-panel { min-width:0; padding:1.25rem; background:#fff; border:1px solid var(--dashboard-line); border-radius:16px; box-shadow:0 5px 18px rgba(24,52,34,.045); }
+.panel-heading { display:flex; justify-content:space-between; align-items:center; gap:.75rem; margin-bottom:.7rem; }
+.panel-eyebrow { margin-bottom:.25rem; font-size:.64rem; }
+.panel-heading h2 { margin:0; font-size:1.15rem; font-weight:730; letter-spacing:-.025em; }
+.panel-period { padding:.35rem .65rem; color:#68776f; background:#f3f6f3; border-radius:8px; font-size:.75rem; font-weight:650; white-space:nowrap; }
+.panel-link { flex:none; color:#17663a; font-size:.82rem; font-weight:700; text-decoration:none; }
+.panel-link:hover { text-decoration:underline; }
+.dashboard-page .chart-wrap { height:300px; min-height:0; position:relative; }
+.chart-empty,.transactions-empty { display:flex; min-height:260px; flex-direction:column; align-items:center; justify-content:center; gap:.45rem; color:var(--dashboard-muted); text-align:center; }
+.chart-empty strong,.transactions-empty strong { color:var(--dashboard-ink); font-size:.92rem; }
+.chart-empty span:last-child,.transactions-empty span:not(.empty-graphic) { font-size:.82rem; }
+.empty-graphic { color:#7cae8a; font-size:2rem; line-height:1; }
+.transaction-table-wrap { overflow-x:auto; }
+.transaction-table { margin:0; }
+.transaction-table thead th { padding:.7rem .55rem; color:#7b8981; border-bottom:1px solid var(--dashboard-line); font-size:.67rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; white-space:nowrap; }
+.transaction-table tbody td { padding:.82rem .55rem; border-bottom:1px solid #f0f3f0; }
+.transaction-table tbody tr:last-child td { border-bottom:0; }
+.transaction-title { display:block; max-width:230px; overflow:hidden; color:var(--dashboard-ink); font-weight:650; text-decoration:none; text-overflow:ellipsis; white-space:nowrap; }
+.transaction-title:hover { color:#17864b; }
+.transaction-date { display:block; margin-top:.15rem; color:var(--dashboard-muted); font-size:.75rem; }
+.category-pill { display:inline-block; padding:.32rem .58rem; color:#52635a; background:#f2f6f3; border-radius:999px; font-size:.74rem; font-weight:650; white-space:nowrap; }
+.transaction-amount { color:#bd5147 !important; font-size:.85rem; font-weight:700; text-align:right; white-space:nowrap; }
+.transactions-empty { min-height:220px; }
+.transactions-empty a { margin-top:.25rem; font-size:.82rem; font-weight:700; text-decoration:none; }
+@media (max-width:991.98px) {
+  .dashboard-metrics { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .dashboard-panels { grid-template-columns:1fr; }
+  .dashboard-page .chart-wrap { height:280px; }
+}
+@media (max-width:575.98px) {
+  .dashboard-header { align-items:flex-start; flex-direction:column; gap:1rem; margin-bottom:1.25rem; }
+  .dashboard-actions { width:100%; }
+  .dashboard-actions .btn { flex:1; }
+  .dashboard-metrics { gap:.7rem; }
+  .metric-card { padding:.9rem; border-radius:13px; }
+  .metric-icon { width:30px; height:30px; }
+  .metric-label { font-size:.6rem; letter-spacing:.045em; }
+  .metric-card h2 { margin-top:.75rem; font-size:1.15rem; }
+  .metric-card p { font-size:.74rem; }
+  .dashboard-budget-alert { align-items:flex-start; flex-wrap:wrap; }
+  .dashboard-budget-alert > div { flex:1; }
+  .dashboard-budget-alert a { margin-left:2.6rem; }
+  .dashboard-panel { padding:1rem; }
+  .panel-heading h2 { font-size:1.02rem; }
+}
+.budget-history-section { --dashboard-muted:var(--muted); border:1px solid #dcebe0; background:linear-gradient(120deg,#fff 0%,#f5fbf6 100%); }
+.budget-history-heading h3 { margin:0 0 .3rem; font-size:1.2rem; font-weight:730; }
+.budget-period-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.85rem; }
+.budget-period-card { min-width:0; padding:1rem; background:#fff; border:1px solid #e3ebe5; border-radius:12px; }
+.budget-period-heading { display:flex; justify-content:space-between; align-items:flex-start; gap:.75rem; }
+.budget-period-heading h4 { margin:0 0 .2rem; color:#26382d; font-size:1rem; font-weight:730; }
+.budget-period-heading span,.budget-period-summary > span { color:var(--dashboard-muted); font-size:.78rem; }
+.budget-period-heading a { flex:none; color:#17663a; font-size:.78rem; font-weight:700; text-decoration:none; }
+.budget-period-heading a:hover { text-decoration:underline; }
+.budget-period-summary { display:flex; justify-content:space-between; align-items:flex-end; gap:.7rem; margin-top:.85rem; }
+.budget-period-summary > div { display:flex; flex-direction:column; gap:.1rem; }
+.budget-period-summary > div > span { color:var(--dashboard-muted); font-size:.75rem; }
+.budget-period-summary strong { color:#17663a; font-size:1.05rem; font-weight:750; }
+.budget-period-card.is-over-budget .budget-period-summary strong { color:#bd5147; }
+.budget-period-card .progress { height:8px; margin-top:.7rem; overflow:hidden; background:#e9efea; border-radius:999px; }
+.budget-period-card .progress-bar { border-radius:999px; }
+@media (max-width:767.98px) {
+  .budget-period-list { grid-template-columns:1fr; }
+}
+@media (max-width:575.98px) {
+  .budget-history-section { padding:1rem !important; }
+}
+.dashboard-page {
+  padding:1.1rem;
+  border:1px solid rgba(195,216,199,.8);
+  border-radius:18px;
+  background:linear-gradient(135deg,rgba(238,245,239,.87),rgba(238,245,239,.94)),url('../images/finance-bg.svg') center/cover no-repeat;
+}
+.report-chart-wrap { height:320px; min-height:260px; position:relative; }
+.report-empty { position:absolute; inset:0; display:grid; place-items:center; padding:1rem; color:var(--muted); text-align:center; }
+@media (max-width:575.98px) {
+  .dashboard-page { padding:.65rem; border-radius:14px; }
+  .report-chart-wrap { height:280px; }
+}

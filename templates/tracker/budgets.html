@@ -1,7 +1,45 @@
 {% extends "base.html" %}
+{% load humanize %}
 {% block title %}Monthly Budget{% endblock %}
 {% block content %}
 <h2 class="mb-3">Monthly Budget Manager - {{ month }}/{{ year }}</h2>
 {% if budget and usage >= 80 %}<div class="alert {% if usage >= 100 %}alert-danger{% else %}alert-warning{% endif %}">{% if usage >= 100 %}Budget exceeded.{% else %}Warning: spending is at or above 80% of the limit.{% endif %}</div>{% endif %}
-<div class="row g-3"><div class="col-lg-8"><div class="card p-4"><h5>Monthly Budget Progress</h5>{% if budget %}<p>Spent: Rs. {{ spent|floatformat:2 }} | Remaining: Rs. {{ remaining|floatformat:2 }}</p><div class="progress"><div class="progress-bar {% if usage >= 100 %}bg-danger{% elif usage >= 80 %}bg-warning{% else %}bg-success{% endif %}" style="width:{{ usage }}%;max-width:100%">{{ usage|floatformat:1 }}%</div></div>{% else %}<p class="text-muted">No budget has been set for this period.</p>{% endif %}</div></div><div class="col-lg-4"><div class="card p-4"><h5>Set / Update Budget</h5><form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary w-100">Save Budget</button></form></div></div></div>
+<div class="row g-3 justify-content-center"><div class="col-lg-6"><div class="card p-4"><h5>Set / Update Budget</h5><form method="post">{% csrf_token %}{{ form.as_p }}<button class="btn btn-primary w-100">Save Budget</button></form></div></div></div>
+<section class="budget-history-section card p-4 mt-4" aria-label="Saved monthly budgets">
+  <div class="budget-history-heading">
+    <div>
+      <p class="panel-eyebrow">YOUR SAVED PLANS</p>
+      <h3>Monthly budgets</h3>
+      <p class="text-muted mb-0">Each month keeps its own limit, spending, and remaining balance.</p>
+    </div>
+  </div>
+  {% if budget_periods %}
+  <div class="budget-period-list mt-3">
+    {% for period in budget_periods %}
+    <article class="budget-period-card {% if period.remaining < 0 %}is-over-budget{% endif %}">
+      <div class="budget-period-heading">
+        <div>
+          <h4>{{ period.month_name }} {{ period.year }}</h4>
+          <span>Limit: Rs. {{ period.limit|floatformat:2 }}</span>
+        </div>
+        <a href="{% url 'budget_month_detail' year=period.year month=period.month %}">View details <span aria-hidden="true">→</span></a>
+      </div>
+      <div class="budget-period-summary">
+        <div>
+          <span>{% if period.remaining >= 0 %}Remaining{% else %}Over budget by{% endif %}</span>
+          <strong>Rs. {{ period.remaining|cut:"-"|floatformat:2|intcomma }}</strong>
+        </div>
+        <span>Spent Rs. {{ period.spent|floatformat:2 }}</span>
+        <span>{{ period.usage|floatformat:1 }}% used</span>
+      </div>
+      <div class="progress" role="progressbar" aria-label="{{ period.month_name }} {{ period.year }} budget used" aria-valuenow="{{ period.usage }}" aria-valuemin="0" aria-valuemax="100">
+        <div class="progress-bar {% if period.usage >= 100 %}bg-danger{% elif period.usage >= 80 %}bg-warning{% else %}bg-success{% endif %}" style="width:{{ period.usage }}%;max-width:100%"></div>
+      </div>
+    </article>
+    {% endfor %}
+  </div>
+  {% else %}
+  <p class="text-muted mt-3 mb-0">No saved monthly budgets yet. Set a limit above to start tracking a month.</p>
+  {% endif %}
+</section>
 {% endblock %}

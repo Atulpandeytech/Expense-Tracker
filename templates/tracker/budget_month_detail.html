@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}{{ month_name }} {{ budget.year }} Budget Details{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-4">
+  <div>
+    <a class="text-decoration-none" href="{% url 'budgets' %}">← All monthly budgets</a>
+    <p class="panel-eyebrow mt-3 mb-1">MONTHLY BREAKDOWN</p>
+    <h2 class="mb-1">{{ month_name }} {{ budget.year }}</h2>
+    <p class="text-muted mb-0">Income and expenses recorded during this budget month.</p>
+  </div>
+  <a class="btn btn-outline-primary" href="{% url 'budgets' %}?month={{ budget.month }}&amp;year={{ budget.year }}">Update this budget</a>
+</div>
+
+{% if usage >= 80 %}
+<div class="alert {% if usage >= 100 %}alert-danger{% else %}alert-warning{% endif %}">
+  {% if usage >= 100 %}This month’s spending is over budget.{% else %}You have used at least 80% of this month’s budget.{% endif %}
+</div>
+{% endif %}
+
+<div class="row g-3 mb-4">
+  <div class="col-sm-6 col-xl-3"><div class="card summary-card p-3"><small class="text-muted">MONTHLY INCOME</small><h4>Rs. {{ total_income|floatformat:2 }}</h4></div></div>
+  <div class="col-sm-6 col-xl-3"><div class="card summary-card expense p-3"><small class="text-muted">MONTHLY EXPENSES</small><h4>Rs. {{ total_expenses|floatformat:2 }}</h4></div></div>
+  <div class="col-sm-6 col-xl-3"><div class="card summary-card balance p-3"><small class="text-muted">NET CASH FLOW</small><h4>Rs. {{ net_balance|floatformat:2 }}</h4></div></div>
+  <div class="col-sm-6 col-xl-3"><div class="card summary-card budget p-3"><small class="text-muted">BUDGET LIMIT</small><h4>Rs. {{ budget.limit_amount|floatformat:2 }}</h4></div></div>
+</div>
+
+<div class="card p-3 mb-4">
+  <div class="d-flex justify-content-between flex-wrap gap-2 mb-2">
+    <strong>Budget used</strong>
+    <span>Spent Rs. {{ total_expenses|floatformat:2 }} of Rs. {{ budget.limit_amount|floatformat:2 }} · {{ usage|floatformat:1 }}%</span>
+  </div>
+  <div class="progress" role="progressbar" aria-label="Monthly budget used" aria-valuenow="{{ usage }}" aria-valuemin="0" aria-valuemax="100">
+    <div class="progress-bar {% if usage >= 100 %}bg-danger{% elif usage >= 80 %}bg-warning{% else %}bg-success{% endif %}" style="width:{{ usage }}%;max-width:100%"></div>
+  </div>
+  <p class="mb-0 mt-2">{% if remaining >= 0 %}Remaining budget: Rs. {{ remaining|floatformat:2 }}{% else %}Over budget by: Rs. {{ remaining|cut:"-"|floatformat:2 }}{% endif %}</p>
+</div>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <section class="card p-3 h-100">
+      <h3 class="h5 mb-3">Income items</h3>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead><tr><th scope="col">Date</th><th scope="col">Source</th><th scope="col" class="text-end">Amount</th></tr></thead>
+          <tbody>
+            {% for income in incomes %}
+            <tr><td>{{ income.date|date:"M j, Y" }}</td><td>{{ income.source }}</td><td class="text-success text-end">+ Rs. {{ income.amount|floatformat:2 }}</td></tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-muted">No income recorded for this month.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+  <div class="col-lg-6">
+    <section class="card p-3 h-100">
+      <h3 class="h5 mb-3">Expense items</h3>
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead><tr><th scope="col">Date</th><th scope="col">Item</th><th scope="col">Category</th><th scope="col" class="text-end">Amount</th></tr></thead>
+          <tbody>
+            {% for expense in expenses %}
+            <tr>
+              <td>{{ expense.date|date:"M j, Y" }}</td>
+              <td>{{ expense.title }}{% if expense.description %}<small class="d-block text-muted">{{ expense.description }}</small>{% endif %}</td>
+              <td>{{ expense.category.name }}</td>
+              <td class="text-danger text-end">− Rs. {{ expense.amount|floatformat:2 }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="text-muted">No expenses recorded for this month.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

@@ -4,10 +4,11 @@ from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
-from django.db.models import Q
+from django.db.models import Count, Min, Q, Sum
+from django.db.models.functions import Lower, Trim
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from .forms import ExpenseForm, IncomeForm, MonthlyBudgetForm
 from .models import Category, Expense, Income, MonthlyBudget
@@ -17,7 +18,9 @@ DEFAULT_CATEGORIES = [
     ('Food', 'food'), ('Transportation', 'transportation'),
     ('Education', 'education'), ('Shopping', 'shopping'),
     ('Entertainment', 'entertainment'), ('Healthcare', 'healthcare'),
-    ('Other', 'other'),
+    ('Other', 'other'), ('Grocery', 'grocery'),
+    ('Electricity Bill', 'electricity-bill'), ('Room Rent', 'room-rent'),
+    ('Other Household Expenses', 'other-household-expenses'),
 ]
 
 
@@ -80,6 +83,14 @@ def dashboard(request):
     if budget:
         budget_usage = (monthly_spend / budget.limit_amount * 100).quantize(Decimal('0.1'))
         budget_remaining = budget.limit_amount - monthly_spend
+    expense_totals = expenses.order_by().annotate(
+        normalized_title=Lower(Trim('title'))
+    ).values('normalized_title').annotate(
+        title=Min('title'),
+        total=Sum('amount'),
+        category_count=Count('category', distinct=True),
+        category_name=Min('category__name'),
+    ).order_by('-total', 'title')[:8]
     category_totals = list(
         monthly_expenses.values('category__name').annotate(total=Sum('amount')).order_by('-total')
     )
@@ -91,7 +102,7 @@ def dashboard(request):
         'budget': budget,
         'budget_usage': budget_usage,
         'budget_remaining': budget_remaining,
-        'recent_expenses': expenses[:8],
+        'expense_totals': expense_totals,
         'category_totals': category_totals,
         'today': today,
     })
@@ -218,7 +229,12 @@ def expense_by_month(request, month_name_value):
 def budgets(request):
     ensure_categories()
     today = date.today()
-    form = MonthlyBudgetForm(request.POST or None)
+    month = int(request.GET.get('month', today.month))
+    year = int(request.GET.get('year', today.year))
+    form = MonthlyBudgetForm(
+        request.POST or None,
+        initial={'month': month, 'year': year},
+    )
     if request.method == 'POST' and form.is_valid():
         budget = form.save(commit=False)
         budget.user = request.user
@@ -231,18 +247,70 @@ def budgets(request):
         else:
             budget.save()
         messages.success(request, 'Monthly budget saved.')
-        return redirect('budgets')
-    month = int(request.GET.get('month', today.month))
-    year = int(request.GET.get('year', today.year))
+        return redirect(f"{reverse('budgets')}?month={budget.month}&year={budget.year}")
     budget = MonthlyBudget.objects.filter(user=request.user, month=month, year=year).first()
     spent = Expense.objects.filter(
         user=request.user, date__month=month, date__year=year
     ).aggregate(total=Sum('amount'))['total'] or Decimal('0')
-    remaining = (budget.limit_amount - spent) if budget else None
     usage = ((spent / budget.limit_amount * 100).quantize(Decimal('0.1'))) if budget else None
+    monthly_expense_totals = {
+        (row['date__year'], row['date__month']): row['total']
+        for row in Expense.objects.filter(user=request.user).order_by().values(
+            'date__year', 'date__month'
+        ).annotate(total=Sum('amount'))
+    }
+    budget_periods = []
+    for saved_budget in MonthlyBudget.objects.filter(user=request.user).order_by('-year', '-month'):
+        period_spent = monthly_expense_totals.get(
+            (saved_budget.year, saved_budget.month), Decimal('0')
+        )
+        month_label = (
+            month_name[saved_budget.month]
+            if 1 <= saved_budget.month <= 12
+            else f"Month {saved_budget.month}"
+        )
+        budget_periods.append({
+            'month': saved_budget.month,
+            'month_name': month_label,
+            'year': saved_budget.year,
+            'limit': saved_budget.limit_amount,
+            'spent': period_spent,
+            'remaining': saved_budget.limit_amount - period_spent,
+            'usage': (
+                period_spent / saved_budget.limit_amount * 100
+            ).quantize(Decimal('0.1')),
+        })
     return render(request, 'tracker/budgets.html', {
-        'form': form, 'budget': budget, 'spent': spent,
-        'remaining': remaining, 'usage': usage, 'month': month, 'year': year,
+        'form': form, 'budget': budget, 'usage': usage, 'month': month, 'year': year,
+        'budget_periods': budget_periods,
+    })
+
+
+@login_required
+def budget_month_detail(request, year, month):
+    budget = get_object_or_404(
+        MonthlyBudget, user=request.user, year=year, month=month
+    )
+    incomes = Income.objects.filter(
+        user=request.user, date__year=year, date__month=month
+    )
+    expenses = Expense.objects.filter(
+        user=request.user, date__year=year, date__month=month
+    ).select_related('category')
+    total_income = incomes.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    total_expenses = expenses.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    remaining = budget.limit_amount - total_expenses
+    usage = (total_expenses / budget.limit_amount * 100).quantize(Decimal('0.1'))
+    return render(request, 'tracker/budget_month_detail.html', {
+        'budget': budget,
+        'month_name': month_name[month],
+        'incomes': incomes,
+        'expenses': expenses,
+        'total_income': total_income,
+        'total_expenses': total_expenses,
+        'net_balance': total_income - total_expenses,
+        'remaining': remaining,
+        'usage': usage,
     })
 
 
@@ -251,23 +319,36 @@ def annual_report(request, year):
     year = int(year)
     income_rows = []
     expense_rows = []
-    category_rows = []
     for month in range(1, 13):
-        income_rows.append(Income.objects.filter(
+        monthly_income = Income.objects.filter(
             user=request.user, date__year=year, date__month=month
-        ).aggregate(total=Sum('amount'))['total'] or 0)
-        expense_rows.append(Expense.objects.filter(
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        monthly_expenses = Expense.objects.filter(
             user=request.user, date__year=year, date__month=month
-        ).aggregate(total=Sum('amount'))['total'] or 0)
-    category_rows = list(Expense.objects.filter(
+        ).aggregate(total=Sum('amount'))['total'] or 0
+        income_rows.append(float(monthly_income))
+        expense_rows.append(float(monthly_expenses))
+    category_totals = Expense.objects.filter(
         user=request.user, date__year=year
-    ).values('category__name').annotate(total=Sum('amount')).order_by('-total'))
+    ).values('category__name').annotate(total=Sum('amount')).order_by('-total')
+    category_rows = [
+        {'label': row['category__name'], 'total': float(row['total'])}
+        for row in category_totals
+    ]
+    budget_limits = [None] * 12
+    for monthly_budget in MonthlyBudget.objects.filter(user=request.user, year=year):
+        if 1 <= monthly_budget.month <= 12:
+            budget_limits[monthly_budget.month - 1] = float(monthly_budget.limit_amount)
+    report_data = {
+        'months': [month_name[i][:3] for i in range(1, 13)],
+        'income': income_rows,
+        'expenses': expense_rows,
+        'budget': budget_limits,
+        'categories': category_rows,
+    }
     return render(request, 'tracker/reports.html', {
         'year': year,
-        'months': [month_name[i][:3] for i in range(1, 13)],
-        'income_rows': income_rows,
-        'expense_rows': expense_rows,
-        'category_rows': category_rows,
+        'report_data': report_data,
     })
 
 

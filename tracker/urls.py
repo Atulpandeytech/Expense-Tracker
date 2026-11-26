@@ -15,6 +15,7 @@ urlpatterns = [
     path('expenses/category/<slug:slug>/', views.expense_by_category, name='expense_by_category'),
     path('expenses/month/<str:month_name_value>/', views.expense_by_month, name='expense_by_month'),
     path('budgets/', views.budgets, name='budgets'),
+    path('budgets/<int:year>/<int:month>/', views.budget_month_detail, name='budget_month_detail'),
     re_path(r'^reports/(?P<year>[0-9]{4})/$', views.annual_report, name='annual_report'),
     path('api/chart-data/', views.chart_data_json, name='chart_data_json'),
     path('mentor/', views.mentor_chat, name='mentor_chat'),
